@@ -13,9 +13,28 @@ understand.
 def parse(source):
     """Parse string representation of one *single* expression
     into the corresponding Abstract Syntax Tree."""
+    source = remove_comments(source);    
+    exp, rest = first_expression(source);
+    if rest:
+        raise LispError('Expected EOF')
+    elif exp[0] == '\'':
+        return ["quote",parse(exp[1:])]
+    elif exp[0] == '(':
+        end = find_matching_paren(exp)
+        return [parse(e) for e in split_exps(exp[1:end])]
+    else:
+        return parse_expression(exp)
 
-    raise NotImplementedError("DIY")
-
+def parse_expression(exp):
+    if exp == '#t':
+        return True;
+    elif exp == '#f':
+        return False;
+    else:
+        try:
+            return int(exp)
+        except ValueError:
+            return exp
 ##
 ## Below are a few useful utility functions. These should come in handy when 
 ## implementing `parse`. We don't want to spend the day implementing parenthesis 
