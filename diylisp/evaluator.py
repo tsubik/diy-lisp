@@ -27,17 +27,15 @@ def evaluate(ast, env):
         elif first_exp in math_operands:    return eval_math_operation(first_exp, ast[1:], env)
         elif first_exp == "<":  return evaluate(ast[1], env) < evaluate(ast[2], env)
         elif first_exp == ">":  return evaluate(ast[1], env) > evaluate(ast[2], env)
-        elif is_list(first_exp): 
+        elif is_list(first_exp) or is_symbol(first_exp): 
             eval_first = evaluate(first_exp, env)
             return evaluate([eval_first]+ast[1:], env)
         elif is_closure(first_exp):
             arguments = ast[1:]
             return evaluate(first_exp.body, first_exp.env.extend(evaluate_function_arguments(first_exp, arguments, env)))
         else:
-            variable_value = env.lookup(first_exp)
-            if is_closure(variable_value):
-                return evaluate([variable_value]+ast[1:] , env) 
-            return variable_value
+            raise LispError('not a function')
+
     elif is_symbol(ast): return env.lookup(ast)
     elif is_atom(ast): return ast    
         
@@ -89,4 +87,8 @@ def eval_math_operation(symbol, args, env):
     else:
         return eval1
 def evaluate_function_arguments(closure, params_values, env):
+    params_count = len(params_values) 
+    closure_params_count = len(closure.params) 
+    if params_count != closure_params_count:
+        raise LispError("wrong number of arguments, expected {0} got {1}".format(closure_params_count, params_count))
     return dict((closure.params[idx], evaluate(param_value, env)) for idx, param_value in enumerate(params_values)) 
