@@ -20,7 +20,10 @@ def evaluate(ast, env):
         first_exp = ast[0]
     else:
         first_exp = ast
-    if is_closure(first_exp):
+    if is_list(first_exp):
+        return evaluate(first_exp, env)
+    elif is_closure(first_exp):
+        print 'is_closure'
         arguments = ast[1:]
         return evaluate(first_exp.body, first_exp.env.extend(evaluate_function_arguments(first_exp, arguments, env)))
     elif is_symbol(first_exp):
