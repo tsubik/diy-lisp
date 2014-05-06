@@ -23,6 +23,14 @@ def evaluate(ast, env):
     if is_symbol(first):
         if first == "atom":
             return is_atom(evaluate(ast[1],env))
+        if first == "if":
+            evalPredicate = evaluate(ast[1],env)
+            if not (is_boolean(evalPredicate)):
+                raise LispError('predicate must return boolean value')
+            if evalPredicate:
+                return evaluate(ast[2], env)
+            else:
+                return evaluate(ast[3], env)
         elif first == "quote":
             return ast[1];
         elif first == "eq":
