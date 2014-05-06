@@ -24,6 +24,22 @@ def evaluate(ast, env):
         elif first_exp == "lambda": return eval_lambda(ast[1:], env)
         elif first_exp == "quote":  return ast[1];
         elif first_exp == "eq":     return eval_equation(ast[1:], env)
+        elif first_exp == "cons":
+            elem = evaluate(ast[1], env)
+            return [elem] + evaluate(ast[2], env)
+        elif first_exp == "head":
+            _list = evaluate(ast[1], env)
+            if len(_list)==0:
+                raise LispError('empty list')
+            return _list[0]
+        elif first_exp == "tail":
+            _list = evaluate(ast[1], env)
+            if len(_list)==0:
+                raise LispError('empty list')
+            return _list[1:]
+        elif first_exp == "empty":
+            _list = evaluate(ast[1], env)
+            return len(_list)==0
         elif first_exp in math_operands:    return eval_math_operation(first_exp, ast[1:], env)
         elif first_exp == "<":  return evaluate(ast[1], env) < evaluate(ast[2], env)
         elif first_exp == ">":  return evaluate(ast[1], env) > evaluate(ast[2], env)
