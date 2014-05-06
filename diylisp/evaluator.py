@@ -17,67 +17,74 @@ math_operands = ["+","-","/","*","mod"]
 
 def evaluate(ast, env):
     if is_list(ast):
-        first = ast[0]
+        first_exp = ast[0]
     else:
-        first = ast
-    if is_closure(first):
+        first_exp = ast
+    if is_closure(first_exp):
         arguments = ast[1:]
-        return evaluate(first.body, first.env.extend(evaluate_function_arguments(first, arguments, env)))
-    elif is_symbol(first):
-        if first == "atom":
+        return evaluate(first_exp.body, first_exp.env.extend(evaluate_function_arguments(first_exp, arguments, env)))
+    elif is_symbol(first_exp):
+        if first_exp == "atom":
             return is_atom(evaluate(ast[1],env))
-        elif first == "define":
-            if not len(ast[1:]) == 2:
-                raise LispError("Wrong number of arguments")
-            variable_name = ast[1]
-            if not is_symbol(variable_name):
-                raise LispError("non-symbol")
-            variable_value = evaluate(ast[2], env)
-            env.set(variable_name, variable_value)
-        elif first == "if":
-            evalPredicate = evaluate(ast[1],env)
-            if not (is_boolean(evalPredicate)):
-                raise LispError('predicate must return boolean value')
-            if evalPredicate:
-                return evaluate(ast[2], env)
-            else:
-                return evaluate(ast[3], env)
-        elif first == "lambda":
-            if not len(ast[1:]) == 2:
-                raise LispError("number of arguments")
-            params = ast[1]
-            body = ast[-1]
-            if not (is_list(params)):
-                raise LispError('arguments of lambda must be a list')
-            return Closure(env, params, body)
-        elif first == "quote":
+        elif first_exp == "define":
+            return eval_define(ast[1:], env)
+        elif first_exp == "if":
+            return eval_if_statement(ast[1:], env)
+        elif first_exp == "lambda":
+            return eval_lambda(ast[1:], env)
+        elif first_exp == "quote":
             return ast[1];
-        elif first == "eq":
-            eval1 = evaluate(ast[1],env)
-            eval2 = evaluate(ast[2],env)
-            if not (is_atom(eval1) and is_atom(eval2)):  
-                return False
-            return eval1 == eval2
-        elif first in math_operands:
-            eval1 = evaluate(ast[1],env)
-            eval2 = evaluate(ast[2],env)
-            if not (is_integer(eval1) and is_integer(eval2)):  
-                raise LispError('math operands must be an integer values')
-            return evaluate_math_operation(first, eval1,eval2)
-        elif first == "<":
+        elif first_exp == "eq":
+            return eval_equation(ast[1:], env)
+        elif first_exp in math_operands:
+            return eval_math_operation(first_exp, ast[1:], env)
+        elif first_exp == "<":
             return evaluate(ast[1], env) < evaluate(ast[2], env)
-        elif first == ">":
+        elif first_exp == ">":
             return evaluate(ast[1], env) > evaluate(ast[2], env)
         else:
-            variable_value = env.lookup(first)
+            variable_value = env.lookup(first_exp)
             if is_closure(variable_value):
                 return evaluate([variable_value]+ast[1:] , env) 
             return variable_value
     else:
-        return first
-def evaluate_function_arguments(closure, params_values, env):
-    return dict((closure.params[idx], evaluate(param_value, env)) for idx, param_value in enumerate(params_values)) 
-def evaluate_math_operation(symbol, eval1, eval2):
+        return first_exp
+
+def eval_define(args, env):
+    if not len(args) == 2:
+        raise LispError("Wrong number of arguments")
+    variable_name = args[0]
+    if not is_symbol(variable_name):
+        raise LispError("non-symbol")
+    variable_value = evaluate(args[1], env)
+    env.set(variable_name, variable_value)
+def eval_if_statement(args, env):
+    evalPredicate = evaluate(args[0],env)
+    if not (is_boolean(evalPredicate)):
+        raise LispError('predicate must return boolean value')
+    if evalPredicate:
+        return evaluate(args[1], env)
+    else:
+        return evaluate(args[2], env)
+def eval_equation(args, env):
+    eval1 = evaluate(args[0],env)
+    eval2 = evaluate(args[1],env)
+    if not (is_atom(eval1) and is_atom(eval2)):  
+        return False
+    return eval1 == eval2
+def eval_lambda(args, env):
+    if not len(args) == 2:
+        raise LispError("number of arguments")
+    params = args[1]
+    body = ast[-1]
+    if not (is_list(params)):
+        raise LispError('arguments of lambda must be a list')
+    return Closure(env, params, body)
+def eval_math_operation(symbol, args, env):
+    eval1 = evaluate(args[0],env)
+    eval2 = evaluate(args[1],env)
+    if not (is_integer(eval1) and is_integer(eval2)):  
+        raise LispError('math operands must be an integer values')
     if symbol == "+":
         return eval1 + eval2
     elif symbol == "-":
@@ -90,3 +97,5 @@ def evaluate_math_operation(symbol, eval1, eval2):
         return eval1 % eval2
     else:
         return eval1
+def evaluate_function_arguments(closure, params_values, env):
+    return dict((closure.params[idx], evaluate(param_value, env)) for idx, param_value in enumerate(params_values)) 
