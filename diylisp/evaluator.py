@@ -75,8 +75,8 @@ def eval_equation(args, env):
 def eval_lambda(args, env):
     if not len(args) == 2:
         raise LispError("number of arguments")
-    params = args[1]
-    body = ast[-1]
+    params = args[0]
+    body = args[-1]
     if not (is_list(params)):
         raise LispError('arguments of lambda must be a list')
     return Closure(env, params, body)
