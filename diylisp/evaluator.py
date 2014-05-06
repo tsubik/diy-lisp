@@ -20,10 +20,21 @@ def evaluate(ast, env):
         first = ast[0]
     else:
         first = ast
-    if is_symbol(first):
+    if is_closure(first):
+        arguments = ast[1:]
+        return evaluate(first.body, first.env.extend(evaluate_function_arguments(first, arguments, env)))
+    elif is_symbol(first):
         if first == "atom":
             return is_atom(evaluate(ast[1],env))
-        if first == "if":
+        elif first == "define":
+            if not len(ast[1:]) == 2:
+                raise LispError("Wrong number of arguments")
+            variable_name = ast[1]
+            if not is_symbol(variable_name):
+                raise LispError("non-symbol")
+            variable_value = evaluate(ast[2], env)
+            env.set(variable_name, variable_value)
+        elif first == "if":
             evalPredicate = evaluate(ast[1],env)
             if not (is_boolean(evalPredicate)):
                 raise LispError('predicate must return boolean value')
@@ -31,6 +42,14 @@ def evaluate(ast, env):
                 return evaluate(ast[2], env)
             else:
                 return evaluate(ast[3], env)
+        elif first == "lambda":
+            if not len(ast[1:]) == 2:
+                raise LispError("number of arguments")
+            params = ast[1]
+            body = ast[-1]
+            if not (is_list(params)):
+                raise LispError('arguments of lambda must be a list')
+            return Closure(env, params, body)
         elif first == "quote":
             return ast[1];
         elif first == "eq":
@@ -49,9 +68,15 @@ def evaluate(ast, env):
             return evaluate(ast[1], env) < evaluate(ast[2], env)
         elif first == ">":
             return evaluate(ast[1], env) > evaluate(ast[2], env)
+        else:
+            variable_value = env.lookup(first)
+            if is_closure(variable_value):
+                return evaluate([variable_value]+ast[1:] , env) 
+            return variable_value
     else:
         return first
-
+def evaluate_function_arguments(closure, params_values, env):
+    return dict((closure.params[idx], evaluate(param_value, env)) for idx, param_value in enumerate(params_values)) 
 def evaluate_math_operation(symbol, eval1, eval2):
     if symbol == "+":
         return eval1 + eval2
