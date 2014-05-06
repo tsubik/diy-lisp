@@ -18,41 +18,29 @@ math_operands = ["+","-","/","*","mod"]
 def evaluate(ast, env):
     if is_list(ast):
         first_exp = ast[0]
-    else:
-        first_exp = ast
-    if is_list(first_exp):
-        return evaluate(first_exp, env)
-    elif is_closure(first_exp):
-        print 'is_closure'
-        arguments = ast[1:]
-        return evaluate(first_exp.body, first_exp.env.extend(evaluate_function_arguments(first_exp, arguments, env)))
-    elif is_symbol(first_exp):
-        if first_exp == "atom":
-            return is_atom(evaluate(ast[1],env))
-        elif first_exp == "define":
-            return eval_define(ast[1:], env)
-        elif first_exp == "if":
-            return eval_if_statement(ast[1:], env)
-        elif first_exp == "lambda":
-            return eval_lambda(ast[1:], env)
-        elif first_exp == "quote":
-            return ast[1];
-        elif first_exp == "eq":
-            return eval_equation(ast[1:], env)
-        elif first_exp in math_operands:
-            return eval_math_operation(first_exp, ast[1:], env)
-        elif first_exp == "<":
-            return evaluate(ast[1], env) < evaluate(ast[2], env)
-        elif first_exp == ">":
-            return evaluate(ast[1], env) > evaluate(ast[2], env)
+        if first_exp == "atom":     return is_atom(evaluate(ast[1],env))
+        elif first_exp == "define": return eval_define(ast[1:], env)
+        elif first_exp == "if":     return eval_if_statement(ast[1:], env)
+        elif first_exp == "lambda": return eval_lambda(ast[1:], env)
+        elif first_exp == "quote":  return ast[1];
+        elif first_exp == "eq":     return eval_equation(ast[1:], env)
+        elif first_exp in math_operands:    return eval_math_operation(first_exp, ast[1:], env)
+        elif first_exp == "<":  return evaluate(ast[1], env) < evaluate(ast[2], env)
+        elif first_exp == ">":  return evaluate(ast[1], env) > evaluate(ast[2], env)
+        elif is_list(first_exp): 
+            eval_first = evaluate(first_exp, env)
+            return evaluate([eval_first]+ast[1:], env)
+        elif is_closure(first_exp):
+            arguments = ast[1:]
+            return evaluate(first_exp.body, first_exp.env.extend(evaluate_function_arguments(first_exp, arguments, env)))
         else:
             variable_value = env.lookup(first_exp)
             if is_closure(variable_value):
                 return evaluate([variable_value]+ast[1:] , env) 
             return variable_value
-    else:
-        return first_exp
-
+    elif is_symbol(ast): return env.lookup(ast)
+    elif is_atom(ast): return ast    
+        
 def eval_define(args, env):
     if not len(args) == 2:
         raise LispError("Wrong number of arguments")
