@@ -25,10 +25,17 @@ class Environment:
         self.variables = variables if variables else {}
 
     def lookup(self, symbol):
-        raise NotImplementedError("DIY")
-
+        if not symbol in self.variables.keys():
+            raise LispError(symbol)
+        return self.variables[symbol]
     def extend(self, variables):
-        raise NotImplementedError("DIY")
-
+        newVariables = {}
+        for k,v in self.variables.iteritems():
+            newVariables[k] = v
+        for k,v in variables.iteritems():
+            newVariables[k] = v
+        return Environment(newVariables)
     def set(self, symbol, value):
-        raise NotImplementedError("DIY")
+        if symbol in self.variables.keys():
+            raise LispError("already defined")
+        self.variables[symbol] = value
