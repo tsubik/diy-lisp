@@ -24,22 +24,10 @@ def evaluate(ast, env):
         elif first_exp == "lambda": return eval_lambda(ast[1:], env)
         elif first_exp == "quote":  return ast[1];
         elif first_exp == "eq":     return eval_equation(ast[1:], env)
-        elif first_exp == "cons":
-            elem = evaluate(ast[1], env)
-            return [elem] + evaluate(ast[2], env)
-        elif first_exp == "head":
-            _list = evaluate(ast[1], env)
-            if len(_list)==0:
-                raise LispError('empty list')
-            return _list[0]
-        elif first_exp == "tail":
-            _list = evaluate(ast[1], env)
-            if len(_list)==0:
-                raise LispError('empty list')
-            return _list[1:]
-        elif first_exp == "empty":
-            _list = evaluate(ast[1], env)
-            return len(_list)==0
+        elif first_exp == "cons":   return eval_list_cons(ast[1:], env)
+        elif first_exp == "head":   return eval_list_head(ast[1:], env)    
+        elif first_exp == "tail":   return eval_list_tail(ast[1:], env)  
+        elif first_exp == "empty":  return eval_list_empty(ast[1:], env)
         elif first_exp in math_operands:    return eval_math_operation(first_exp, ast[1:], env)
         elif first_exp == "<":  return evaluate(ast[1], env) < evaluate(ast[2], env)
         elif first_exp == ">":  return evaluate(ast[1], env) > evaluate(ast[2], env)
@@ -54,7 +42,28 @@ def evaluate(ast, env):
 
     elif is_symbol(ast): return env.lookup(ast)
     elif is_atom(ast): return ast    
-        
+
+def eval_list_cons(args, env):
+    elem = evaluate(args[0], env)
+    _list = evaluate(args[1], env)
+    return [elem] + _list
+
+def eval_list_head(args, env):
+    _list = evaluate(args[0], env)
+    if len(_list)==0:
+        raise LispError('empty list')
+    return _list[0]
+
+def eval_list_tail(args, env):
+    _list = evaluate(args[0], env)
+    if len(_list)==0:
+        raise LispError('empty list')
+    return _list[1:]
+
+def eval_list_empty(args, env):
+    _list = evaluate(args[0], env)
+    return len(_list)==0
+
 def eval_define(args, env):
     if not len(args) == 2:
         raise LispError("Wrong number of arguments")
