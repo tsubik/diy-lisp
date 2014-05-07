@@ -4,5 +4,48 @@
     (lambda (b)
         (if b #f #t)))
 
-;; DIY -- Implement the rest of your standard library
-;; here as part 7 of the workshop.
+(define or
+    (lambda (a b)
+        (if a #t (if b #t #f))
+    )
+)
+
+(define and
+    (lambda (a b)
+        (if a (if b #t #f) #f)
+    )
+)
+
+(define xor
+    (lambda (a b)
+        (
+            if (or (and a (not b)) (and (not a) b)) #t #f
+        )
+    )
+)
+
+(define sum
+    (lambda (_list)
+        (
+            if (not (empty _list)) 
+                (+ (head _list) (sum (tail _list)))
+                0
+        )
+    )
+)
+
+
+(define length
+    (lambda (_list)
+        (
+            if (empty _list)
+            0
+            (if (
+                and (not (empty '(head _list)))
+                    (empty (tail _list)))
+                1
+                (+ 1 (length (tail _list)))
+            )
+        )
+    )
+)

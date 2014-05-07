@@ -30,7 +30,9 @@ def evaluate(ast, env):
         elif first_exp == "empty":  return eval_list_empty(ast[1:], env)
         elif first_exp in math_operands:    return eval_math_operation(first_exp, ast[1:], env)
         elif first_exp == "<":  return evaluate(ast[1], env) < evaluate(ast[2], env)
+        elif first_exp == "<=":  return evaluate(ast[1], env) <= evaluate(ast[2], env)
         elif first_exp == ">":  return evaluate(ast[1], env) > evaluate(ast[2], env)
+        elif first_exp == ">=":  return evaluate(ast[1], env) >= evaluate(ast[2], env)
         elif is_list(first_exp) or is_symbol(first_exp): 
             eval_first = evaluate(first_exp, env)
             return evaluate([eval_first]+ast[1:], env)
@@ -38,7 +40,7 @@ def evaluate(ast, env):
             arguments = ast[1:]
             return evaluate(first_exp.body, first_exp.env.extend(evaluate_function_arguments(first_exp, arguments, env)))
         else:
-            raise LispError('not a function')
+            raise LispError('{0} not a function'.format(first_exp))
 
     elif is_symbol(ast): return env.lookup(ast)
     elif is_atom(ast): return ast    
