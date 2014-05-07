@@ -49,3 +49,33 @@
         )
     )
 )
+
+(define last_elem
+    (lambda (_list)
+        (
+            if (eq (length _list) 1)
+                (head _list)
+                (last_elem (tail _list))
+        )
+    )
+)
+
+(define first
+    (lambda (_list elem_count)
+        (
+            if (not (or (empty _list) (<= elem_count 0) ))
+                (cons (head _list) (first (tail _list) (- elem_count 1)))
+                '()
+        )
+    )
+)
+
+(define append
+    (lambda (_list1 _list2)
+        (
+            if (empty _list1)
+                _list2
+                (append (first _list1 (- (length _list1) 1)) (cons (last_elem _list1) _list2))
+        )
+    )
+)
